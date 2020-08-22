@@ -1,0 +1,163 @@
+<html>
+<style>
+    body {
+        /* PAS DES VALEURS EN % ICI !!! */
+        --x: 0;
+        --y: 50;
+        position: relative;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    h1,
+    h2,
+    p {
+        margin: 0;
+        padding: 0;
+    }
+
+    #top {
+        color: white;
+        background: blue;
+        font-size: 30px;
+        text-align: center;
+    }
+
+    #hidden p,
+    #main p {
+        padding: 10%;
+        font-family: sans-serif;
+        color: blue;
+        font-size: 7vh;
+        line-height: 1em;
+    }
+
+    #main {
+        position: absolute;
+        min-height: 300px;
+        background-color: yellow;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        text-align: center;
+    }
+
+    #hidden {
+        background: black;
+        min-height: 300px;
+        cursor: none;
+    }
+
+    .intro {
+        clip-path: circle(0% at var(--x) var(--y));
+        animation: intro 1800ms cubic-bezier(0.645, 0.045, 0.355, 1) both;
+    }
+
+    .shrink {
+        clip-path: circle(10% at var(--x) var(--y));
+        animation: shrink 800ms cubic-bezier(0.645, 0.045, 0.355, 1) both;
+    }
+
+    @keyframes intro {
+        100% {
+            clip-path: circle(10% at var(--x) var(--y));
+        }
+    }
+
+    @keyframes shrink {
+        100% {
+            clip-path: circle(0% at var(--x) var(--y));
+        }
+    }
+
+</style>
+<body>
+<div id="top">This is another div</div>
+
+<div id="main"></div>
+<div id="hidden" class="intro">
+    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem
+        aperiam,
+        eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo</p>
+</div>
+<script type="text/javascript">
+
+    // Par sécurité, on fait rien avant le document ready
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const circleClip = document.querySelector('#hidden');
+        const divSize = document.querySelector('#top').offsetHeight;
+        const body = document.querySelector('body');
+
+        // La vitesse à laquelle le cercle suit la souris.
+        // Plus c'est grand, plus c'est rapide.
+        // A essayer: 1/50, 1/10, 1, 2
+        const speed = 1 / 10;
+
+        // Pour lire la valeur actuelle des variables CSS --x, --y, et shooter les "px"
+        // Putain de CSS
+        const getActualCirclePos = () => ({
+            x: parseInt(getComputedStyle(body).getPropertyValue('--x'), 10),
+            y: parseInt(getComputedStyle(body).getPropertyValue('--y'), 10),
+        });
+
+        // Quand la souris bouge sur le **body** (n'importe ou):
+        const move = (newX, newY) => {
+
+            // On chope la position actuelle depuis le CSS
+            const curPos = getActualCirclePos();
+
+            // on calcule la différence avec la nouvelle position
+            // on multiplie par la vitesse
+            const deltaX = (newX - curPos.x) * speed;
+            const deltaY = (newY - curPos.y) * speed;
+
+            // et on bouge le cercle un petit peu dans cette direction
+            body.style.setProperty('--x', (curPos.x + deltaX) + 'px');
+            body.style.setProperty('--y', (curPos.y + deltaY) + 'px');
+        };
+
+        // Attaché au mousemove du body
+        const circleMove = (e) => {
+            e.preventDefault();
+            move(e.clientX, e.clientY - divSize);
+        };
+
+        // Attaché touchmove, cf mousemove mais on recupère la nouvelle position autrement
+        const touchMove = (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            move(touch.clientX, touch.clientY - divSize);
+        };
+
+        const shrinkCircle = () => {
+            circleClip.classList.remove('intro');
+            circleClip.classList.add('shrink');
+        };
+
+        const expandCircle = () => {
+            circleClip.classList.remove('shrink');
+            circleClip.classList.add('intro');
+        };
+
+
+        // Quand on sors du doc --> on rapetisse le cercle
+        document.addEventListener('mouseleave', shrinkCircle);
+        // Quand on entre dans le doc --> on aggrandit le cercle
+        document.addEventListener('mouseenter', expandCircle);
+        // Quand la souris bouge on calcule où on veut bouger le cercle
+        body.addEventListener('mousemove', circleMove);
+
+
+        // CA C'EST A TESTER....
+        circleClip.addEventListener('touchmove', touchMove);
+        circleClip.addEventListener('touchstart', expandCircle);
+        circleClip.addEventListener('touchend', shrinkCircle);
+
+    });
+
+
+</script>
+</body>
+</html>
